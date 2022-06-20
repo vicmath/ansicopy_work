@@ -1,0 +1,54 @@
+---
+- name: sample book
+  hosts: host_group
+  remote_user: root
+  become: true
+  tasks:
+    - name: ensure /var/www/html/ exists
+      file:
+        path: /var/www/html
+        state: directory
+
+    - name: create content
+      copy:
+        content: "Congrats on installing Ansible on: '{{ ansible_os_family }}'"
+        dest: /var/www/html/index.html
+
+    - name: Install httpd on RedHat Server
+      package:
+        name: httpd
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Install Apache on Ubuntu Server
+      package:
+        name: apache2
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Reload httpd
+      service:
+        name: httpd
+        state: reloaded
+      when: ansible_os_family == "RedHat"
+      notify: Restart httpd
+
+    - name: Reload Apache
+      service:
+        name: apache2
+        state: reloaded
+      when: ansible_os_family == "Debian"
+      notify: Restart Apache
+
+  handlers:
+    - name: Restart httpd
+      service:
+        name: httpd
+        state: restarted
+
+    - name: Restart Apache
+      service:
+        name: apache2
+        state: restarted
+
+
